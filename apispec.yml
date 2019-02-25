@@ -1,0 +1,45 @@
+openapi: "3.0.0"
+info:
+  title: DigiCoin API
+  version: 2.0.0
+paths:
+  /coinprices:
+    get:
+      summary: Look up a coin price
+      description: |
+        Example request: 
+        ```
+        /coinprices?coinID=ripple&currencyID=usd
+        ```
+      parameters:
+      - name: coinID
+        description: ID of the digital coin
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [bitcoin, litecoin, ripple]
+          default: "bitcoin"
+      - name: currencyID
+        description: ID of the traditional currency
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [usd, eur, aud, cad, jpy]
+          default: "usd"         
+      responses:
+        '200':
+          description: Returns a convertion rate for a digicoin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/conversionRateResponse'
+components:
+  schemas:
+    conversionRateResponse:
+      type: object
+      properties:
+        rate:
+          type: number
+          format: float
