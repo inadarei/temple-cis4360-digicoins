@@ -1,7 +1,7 @@
 openapi: "3.0.0"
 info:
   title: DigiCoin API
-  version: 2.0.0
+  version: 1.0.0
 paths:
   /coinprices:
     get:
@@ -9,7 +9,7 @@ paths:
       description: |
         Example request: 
         ```
-        /coinprices?coinID=ripple&currencyID=usd
+        GET /coinprices?coinID=ripple&currencyID=usd
         ```
       parameters:
       - name: coinID
@@ -35,6 +35,109 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/conversionRateResponse'
+  /user/{userId}/paymentmethods:
+    get:
+      summary: Look up payment methods
+      description: |
+        Example request:
+        ```
+        GET /user/1CB5E8BD-BE4C-4142-B492-39896AF0A1B5/paymentmethods
+        ```
+
+        Example response:
+
+        ```
+        {
+          methods: [
+            "uuid" : "1F1C9547-E60F-4772-B3EE-96BD217D8A89",
+            "active" : true,
+            "type" : "creditcard",
+            "paymentDetails": {
+              "cardnumber" : "4000111122223333",
+              "expiration" : "02/25",
+              "code" : "123",
+              "name" : "Edwin Williams",
+              "address" : "112 Main st",
+              "city" : "Macondo",
+              "state" : "PA",
+              "zip" : "27470-7205"
+            }
+          ]
+        }
+        ```
+
+      parameters:
+      - name: userId
+        description: digiCoin customer identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: type
+        description: payment method type
+        in: query
+        required: false
+        schema: 
+          type: string
+          enum: [creditcard, ach, zelle]
+          default: "ach"
+      responses:
+        '200':
+          description: Returns list of registered payment methods
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/paymentMethods'
+  /user/{userId}/funds:
+    put:
+      summary: Charge a payment method to fund coin purchase
+      description: |
+        Example request:
+        ```
+        POST /user/1CB5E8BD-BE4C-4142-B492-39896AF0A1B5/funds
+
+        {
+          "uuid": "1F1C9547-E60F-4772-B3EE-96BD217D8A89"
+          "amount" : 550,
+          "currency" : "usd"
+        }
+        ```
+
+      parameters:
+      - name: userId
+        description: digiCoin customer identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: payment information
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                paymentAccount:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                currency:
+                  type: string
+                  enum: [usd, eur, aud, cad, jpy]
+                  default: "usd"
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not Found
+
+
+
+
 components:
   schemas:
     conversionRateResponse:
@@ -43,3 +146,23 @@ components:
         rate:
           type: number
           format: float
+    paymentMethods:
+      type: object
+      properties:
+        methods:
+          type: array
+          items: 
+            type: object
+            properties:
+              uuid:
+                type: string
+                format: uuid
+              active: 
+                type: boolean
+              type:
+                type: string
+                enum: [creditcard, ach]
+              paymentDetails:
+                type: object
+                
+
